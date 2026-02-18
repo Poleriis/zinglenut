@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fictional Time Converter — zinglenut</title>
+  <title>Time Converter — ZINGLENUT</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -56,18 +56,18 @@
   </style>
 </head>
 <body>
-  <h1>Fictional Time Converter</h1>
+  <h1>ZINGLENUT Time Converter</h1>
   <p class="sub">Aevum Victoria (A.V.) · Aevum Tenebrarum (A.T.) · Before Tenebrarum (B.T.)</p>
 
   <section>
-    <h2>Real world → Fictional</h2>
+    <h2>Real world time → ZINGLENUT time</h2>
     <label for="realInput">Date & time (Pacific time)</label>
     <input type="datetime-local" id="realInput" step="1">
     <p class="result" id="realToFicResult">Enter a date</p>
   </section>
 
   <section>
-    <h2>Fictional → Real world</h2>
+    <h2>ZINGLENUT time → Real world time</h2>
     <label>Era</label>
     <select id="ficEra">
       <option value="AV">Aevum Victoria (A.V.)</option>
@@ -95,11 +95,11 @@
         <input type="number" id="ficDay" min="1" max="36" value="1">
       </div>
       <div>
-        <label for="ficHour">Fictional hour (0–23)</label>
+        <label for="ficHour">ZINGLENUT hour (0–23)</label>
         <input type="number" id="ficHour" min="0" max="23" value="0" placeholder="0">
       </div>
       <div>
-        <label for="ficMin">Fictional min (0–59)</label>
+        <label for="ficMin">ZINGLENUT min (0–59)</label>
         <input type="number" id="ficMin" min="0" max="59" value="0" placeholder="0">
       </div>
     </div>
@@ -107,12 +107,12 @@
   </section>
 
   <script>
-    // --- Fictional time constants ---
+    // --- ZINGLENUT time constants ---
     const MONTHS = ['Auriga', 'Caelum', 'Cepheus', 'Delphinus', 'Fornax', 'Lacerta', 'Mensa', 'Orion', 'Pisces', 'Sagitta'];
     const SECONDS_PER_FIC_DAY = 6 * 3600;           // 21,600
     const SECONDS_PER_FIC_MONTH = 36 * SECONDS_PER_FIC_DAY;  // 777,600
     const SECONDS_PER_FIC_YEAR = 10 * SECONDS_PER_FIC_MONTH; // 7,776,000
-    const FIC_DAY_HOURS = 24;  // 1 fictional day = 6 real hours, subdivided into 24 fictional hours
+    const FIC_DAY_HOURS = 24;  // 1 ZINGLENUT day = 6 real hours, subdivided into 24 ZINGLENUT hours
 
     // 0 A.V. = September 23, 2024 00:00:00 Pacific (America/Los_Angeles)
     // Sept 23 2024 is PDT (UTC-7), so 00:00 Pacific = 07:00 UTC
@@ -138,7 +138,7 @@
       return ((a % b) + b) % b;
     }
 
-    // --- Real → Fictional ---
+    // --- Real → ZINGLENUT ---
     function realToFictional(utcMs) {
       const totalSeconds = (utcMs - EPOCH_MS) / 1000;
       const yearIndex = Math.floor(totalSeconds / SECONDS_PER_FIC_YEAR);
@@ -148,7 +148,7 @@
       const dayIndex = Math.floor(remainder / SECONDS_PER_FIC_DAY);
       const secondsInDay = mod(remainder, SECONDS_PER_FIC_DAY);
 
-      // Fictional time of day: 24 fic hours in 6 real hours → 1 fic hour = 15 real min
+      // ZINGLENUT time of day: 24 fic hours in 6 real hours → 1 zingle hour = 15 real min
       const ficHour = Math.floor((secondsInDay / SECONDS_PER_FIC_DAY) * FIC_DAY_HOURS);
       const ficMin = Math.floor(((secondsInDay / SECONDS_PER_FIC_DAY) * FIC_DAY_HOURS - ficHour) * 60);
 
@@ -171,7 +171,7 @@
       return { era, yearLabel, monthName, day, time: h + ':' + m };
     }
 
-    // --- Fictional → Real ---
+    // --- ZINGLENUT → Real ---
     function fictionalToReal(era, year, monthIndex, day, ficHour, ficMin) {
       let yearIndex;
       if (era === 'AV') {
@@ -196,7 +196,7 @@
       return EPOCH_MS + totalSeconds * 1000;
     }
 
-    // --- UI: Real → Fictional ---
+    // --- UI: Real → ZINGLENUT ---
     const realInput = document.getElementById('realInput');
     const realToFicResult = document.getElementById('realToFicResult');
 
@@ -238,7 +238,7 @@
       realToFicResult.classList.remove('empty');
     });
 
-    // --- UI: Fictional → Real ---
+    // --- UI: ZINGLENUT → Real ---
     const ficEra = document.getElementById('ficEra');
     const ficYear = document.getElementById('ficYear');
     const ficMonth = document.getElementById('ficMonth');
