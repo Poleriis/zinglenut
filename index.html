@@ -158,10 +158,10 @@
         yearLabel = yearIndex + ' ' + era;
       } else if (yearIndex >= -4500) {
         era = 'A.T.';
-        yearLabel = (-yearIndex) + ' ' + era;
+        yearLabel = (4500 + yearIndex + 1) + ' ' + era;  // -1 → 4500 A.T., -4500 → 1 A.T.
       } else {
         era = 'B.T.';
-        yearLabel = (-yearIndex - 4500) + ' ' + era;
+        yearLabel = (-yearIndex - 4501) + ' ' + era;     // -4502 → 1 B.T., -4503 → 2 B.T.
       }
 
       const day = dayIndex + 1;
@@ -171,17 +171,19 @@
       return { era, yearLabel, monthName, day, time: h + ':' + m };
     }
 
-    // --- ZINGLENUT → Real ---
+    // --- Fictional → Real ---
+    // A.T. is not reverse: 4500 A.T. directly precedes 0 A.V. (so 4500 A.T. = yearIndex -1).
+    // B.T. is reverse: 1 B.T. precedes 0 A.T., 2 B.T. precedes 1 B.T., so B.T. Y = yearIndex -(4501+Y).
     function fictionalToReal(era, year, monthIndex, day, ficHour, ficMin) {
       let yearIndex;
       if (era === 'AV') {
         yearIndex = year;
       } else if (era === 'AT') {
         if (year < 1 || year > 4500) return null;
-        yearIndex = -year;
+        yearIndex = -(4500 - year + 1);  // 4500 A.T. → -1, 1 A.T. → -4500
       } else {
         if (year < 1) return null;
-        yearIndex = -(4500 + year);
+        yearIndex = -(4501 + year);       // 1 B.T. → -4502, 2 B.T. → -4503
       }
       if (monthIndex < 0 || monthIndex > 9) return null;
       if (day < 1 || day > 36) return null;
