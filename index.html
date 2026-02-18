@@ -3,42 +3,258 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Under Construction — zinglenut</title>
+  <title>Fictional Time Converter — zinglenut</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-family: system-ui, -apple-system, sans-serif;
       background: #000;
       color: #fff;
-    }
-    .container {
-      text-align: center;
       padding: 2rem;
     }
     h1 {
-      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      font-size: 1.5rem;
       font-weight: 600;
-      letter-spacing: 0.05em;
       margin-bottom: 0.5rem;
     }
-    .sub {
-      font-size: 0.95rem;
-      opacity: 0.7;
+    .sub { font-size: 0.9rem; opacity: 0.7; margin-bottom: 2rem; }
+    section {
+      max-width: 28rem;
+      margin-bottom: 2.5rem;
     }
+    section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+    label { display: block; font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.35rem; }
+    input, select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      background: #222;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+    }
+    input[type="datetime-local"] { margin-bottom: 0.75rem; }
+    .row { display: flex; gap: 0.75rem; }
+    .row > * { flex: 1; }
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #1a1a1a;
+      border-radius: 4px;
+      font-size: 1rem;
+      min-height: 2.5em;
+    }
+    .result.empty { opacity: 0.5; }
+    .result strong { color: #fff; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Under Construction</h1>
-    <p class="sub">We'll be back soon.</p>
-  </div>
+  <h1>Fictional Time Converter</h1>
+  <p class="sub">Aevum Victoria (A.V.) · Aevum Tenebrarum (A.T.) · Before Tenebrarum (B.T.)</p>
+
+  <section>
+    <h2>Real world → Fictional</h2>
+    <label for="realInput">Date & time (real world)</label>
+    <input type="datetime-local" id="realInput" step="1">
+    <p class="result" id="realToFicResult">Enter a date</p>
+  </section>
+
+  <section>
+    <h2>Fictional → Real world</h2>
+    <label>Era</label>
+    <select id="ficEra">
+      <option value="AV">Aevum Victoria (A.V.)</option>
+      <option value="AT">Aevum Tenebrarum (A.T.)</option>
+      <option value="BT">Before Tenebrarum (B.T.)</option>
+    </select>
+    <label for="ficYear">Year</label>
+    <input type="number" id="ficYear" min="0" value="0" placeholder="e.g. 0">
+    <label for="ficMonth">Month</label>
+    <select id="ficMonth">
+      <option value="0">Auriga</option>
+      <option value="1">Caelum</option>
+      <option value="2">Cepheus</option>
+      <option value="3">Delphinus</option>
+      <option value="4">Fornax</option>
+      <option value="5">Lacerta</option>
+      <option value="6">Mensa</option>
+      <option value="7">Orion</option>
+      <option value="8">Pisces</option>
+      <option value="9">Sagitta</option>
+    </select>
+    <div class="row">
+      <div>
+        <label for="ficDay">Day (1–36)</label>
+        <input type="number" id="ficDay" min="1" max="36" value="1">
+      </div>
+      <div>
+        <label for="ficHour">Fictional hour (0–23)</label>
+        <input type="number" id="ficHour" min="0" max="23" value="0" placeholder="0">
+      </div>
+      <div>
+        <label for="ficMin">Fictional min (0–59)</label>
+        <input type="number" id="ficMin" min="0" max="59" value="0" placeholder="0">
+      </div>
+    </div>
+    <p class="result" id="ficToRealResult">Enter values</p>
+  </section>
+
+  <script>
+    // --- Fictional time constants ---
+    const MONTHS = ['Auriga', 'Caelum', 'Cepheus', 'Delphinus', 'Fornax', 'Lacerta', 'Mensa', 'Orion', 'Pisces', 'Sagitta'];
+    const SECONDS_PER_FIC_DAY = 6 * 3600;           // 21,600
+    const SECONDS_PER_FIC_MONTH = 36 * SECONDS_PER_FIC_DAY;  // 777,600
+    const SECONDS_PER_FIC_YEAR = 10 * SECONDS_PER_FIC_MONTH; // 7,776,000
+    const FIC_DAY_HOURS = 24;  // 1 fictional day = 6 real hours, subdivided into 24 fictional hours
+
+    // 0 A.V. = September 23, 2024 00:00:00 (local time)
+    const EPOCH = new Date(2024, 8, 23, 0, 0, 0, 0);
+
+    function mod(a, b) {
+      return ((a % b) + b) % b;
+    }
+
+    // --- Real → Fictional ---
+    function realToFictional(realDate) {
+      const totalSeconds = (realDate.getTime() - EPOCH.getTime()) / 1000;
+      const yearIndex = Math.floor(totalSeconds / SECONDS_PER_FIC_YEAR);
+      let remainder = mod(totalSeconds, SECONDS_PER_FIC_YEAR);
+      const monthIndex = Math.floor(remainder / SECONDS_PER_FIC_MONTH);
+      remainder = mod(remainder, SECONDS_PER_FIC_MONTH);
+      const dayIndex = Math.floor(remainder / SECONDS_PER_FIC_DAY);
+      const secondsInDay = mod(remainder, SECONDS_PER_FIC_DAY);
+
+      // Fictional time of day: 24 fic hours in 6 real hours → 1 fic hour = 15 real min
+      const ficHour = Math.floor((secondsInDay / SECONDS_PER_FIC_DAY) * FIC_DAY_HOURS);
+      const ficMin = Math.floor(((secondsInDay / SECONDS_PER_FIC_DAY) * FIC_DAY_HOURS - ficHour) * 60);
+
+      let era, yearLabel;
+      if (yearIndex >= 0) {
+        era = 'A.V.';
+        yearLabel = yearIndex + ' ' + era;
+      } else if (yearIndex >= -4500) {
+        era = 'A.T.';
+        yearLabel = (-yearIndex) + ' ' + era;
+      } else {
+        era = 'B.T.';
+        yearLabel = (-yearIndex - 4500) + ' ' + era;
+      }
+
+      const day = dayIndex + 1;
+      const monthName = MONTHS[monthIndex];
+      const h = String(ficHour).padStart(2, '0');
+      const m = String(ficMin).padStart(2, '0');
+      return { era, yearLabel, monthName, day, time: h + ':' + m };
+    }
+
+    // --- Fictional → Real ---
+    function fictionalToReal(era, year, monthIndex, day, ficHour, ficMin) {
+      let yearIndex;
+      if (era === 'AV') {
+        yearIndex = year;
+      } else if (era === 'AT') {
+        if (year < 1 || year > 4500) return null;
+        yearIndex = -year;
+      } else {
+        if (year < 1) return null;
+        yearIndex = -(4500 + year);
+      }
+      if (monthIndex < 0 || monthIndex > 9) return null;
+      if (day < 1 || day > 36) return null;
+      ficHour = ficHour || 0;
+      ficMin = ficMin || 0;
+      const secondsInDay = (ficHour / FIC_DAY_HOURS + ficMin / (FIC_DAY_HOURS * 60)) * SECONDS_PER_FIC_DAY;
+      const totalSeconds =
+        yearIndex * SECONDS_PER_FIC_YEAR +
+        monthIndex * SECONDS_PER_FIC_MONTH +
+        (day - 1) * SECONDS_PER_FIC_DAY +
+        secondsInDay;
+      return new Date(EPOCH.getTime() + totalSeconds * 1000);
+    }
+
+    // --- UI: Real → Fictional ---
+    const realInput = document.getElementById('realInput');
+    const realToFicResult = document.getElementById('realToFicResult');
+
+    function formatRealDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      const s = String(d.getSeconds()).padStart(2, '0');
+      return y + '-' + m + '-' + day + ' ' + h + ':' + min + ':' + s;
+    }
+
+    realInput.addEventListener('input', function () {
+      const value = realInput.value;
+      if (!value) {
+        realToFicResult.textContent = 'Enter a date';
+        realToFicResult.classList.add('empty');
+        return;
+      }
+      const realDate = new Date(value);
+      if (isNaN(realDate.getTime())) {
+        realToFicResult.textContent = 'Invalid date';
+        realToFicResult.classList.add('empty');
+        return;
+      }
+      const fic = realToFictional(realDate);
+      realToFicResult.innerHTML = '<strong>' + fic.monthName + ' ' + fic.day + ', ' + fic.yearLabel + '</strong> at ' + fic.time;
+      realToFicResult.classList.remove('empty');
+    });
+
+    // --- UI: Fictional → Real ---
+    const ficEra = document.getElementById('ficEra');
+    const ficYear = document.getElementById('ficYear');
+    const ficMonth = document.getElementById('ficMonth');
+    const ficDay = document.getElementById('ficDay');
+    const ficHour = document.getElementById('ficHour');
+    const ficMin = document.getElementById('ficMin');
+    const ficToRealResult = document.getElementById('ficToRealResult');
+
+    function updateFicToReal() {
+      const era = ficEra.value;
+      const year = parseInt(ficYear.value, 10);
+      const monthIndex = parseInt(ficMonth.value, 10);
+      const day = parseInt(ficDay.value, 10);
+      const hour = parseInt(ficHour.value, 10) || 0;
+      const min = parseInt(ficMin.value, 10) || 0;
+      if (era === 'AV' && (isNaN(year) || year < 0)) {
+        ficToRealResult.textContent = 'Enter a valid A.V. year (≥ 0)';
+        ficToRealResult.classList.add('empty');
+        return;
+      }
+      if (era === 'AT' && (isNaN(year) || year < 1 || year > 4500)) {
+        ficToRealResult.textContent = 'Enter a valid A.T. year (1–4500)';
+        ficToRealResult.classList.add('empty');
+        return;
+      }
+      if (era === 'BT' && (isNaN(year) || year < 1)) {
+        ficToRealResult.textContent = 'Enter a valid B.T. year (≥ 1)';
+        ficToRealResult.classList.add('empty');
+        return;
+      }
+      const realDate = fictionalToReal(era, year, monthIndex, day, hour, min);
+      if (!realDate) {
+        ficToRealResult.textContent = 'Invalid fictional date';
+        ficToRealResult.classList.add('empty');
+        return;
+      }
+      ficToRealResult.textContent = formatRealDate(realDate) + ' (local)';
+      ficToRealResult.classList.remove('empty');
+    }
+
+    [ficEra, ficYear, ficMonth, ficDay, ficHour, ficMin].forEach(el => el.addEventListener('input', updateFicToReal));
+    [ficEra, ficYear, ficMonth, ficDay, ficHour, ficMin].forEach(el => el.addEventListener('change', updateFicToReal));
+    updateFicToReal();
+  </script>
 </body>
 </html>
